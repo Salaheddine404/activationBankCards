@@ -11,6 +11,7 @@ export default function HomeScreen() {
     { pan: string; expiry: string; name_on_card: string; cardstatus: string; cardtype: string }[]
   >([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState(0);
 
   const fetchCards = async () => {
     if (!customerId.trim()) return;
@@ -35,6 +36,58 @@ export default function HomeScreen() {
 
   return (
     <LinearGradient colors={["#f8fafc", "#e2e8f0"]} style={styles.container}>
+      {/* Premium Navigation Bar */}
+      <LinearGradient
+        colors={["#ffffff", "#f1f5f9"]}
+        start={[0.1, 0.1]}
+        end={[0.9, 0.9]}
+        style={styles.navBar}
+      >
+        <TouchableOpacity 
+          style={[styles.navItem, activeTab === 0 && styles.activeNavItem]}
+          onPress={() => setActiveTab(0)}
+        >
+          <MaterialIcons 
+            name="home" 
+            size={26} 
+            color={activeTab === 0 ? "#4f46e5" : "#64748b"} 
+          />
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={[styles.navItem, activeTab === 1 && styles.activeNavItem]}
+          onPress={() => setActiveTab(1)}
+        >
+          <MaterialIcons 
+            name="credit-card" 
+            size={26} 
+            color={activeTab === 1 ? "#4f46e5" : "#64748b"} 
+          />
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={[styles.navItem, activeTab === 2 && styles.activeNavItem]}
+          onPress={() => setActiveTab(2)}
+        >
+          <MaterialIcons 
+            name="notifications" 
+            size={26} 
+            color={activeTab === 2 ? "#4f46e5" : "#64748b"} 
+          />
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={[styles.navItem, activeTab === 3 && styles.activeNavItem]}
+          onPress={() => setActiveTab(3)}
+        >
+          <MaterialIcons 
+            name="person" 
+            size={26} 
+            color={activeTab === 3 ? "#4f46e5" : "#64748b"} 
+          />
+        </TouchableOpacity>
+      </LinearGradient>
+
       <View style={styles.header}>
         <Text style={styles.title}>Customer Card Finder</Text>
         <MaterialIcons name="contactless" size={28} color="#4f46e5" />
@@ -94,6 +147,29 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 24,
+  },
+  navBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 20,
+    marginBottom: 24,
+    marginHorizontal: 16,
+    shadowColor: '#64748b',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  navItem: {
+    padding: 10,
+    borderRadius: 14,
+    backgroundColor: 'transparent',
+  },
+  activeNavItem: {
+    backgroundColor: 'rgba(79, 70, 229, 0.1)',
   },
   header: {
     flexDirection: "row",
