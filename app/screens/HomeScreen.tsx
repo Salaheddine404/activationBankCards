@@ -1,75 +1,71 @@
-import React, { useState } from "react";
-import { View, Text, TextInput, FlatList, StyleSheet, TouchableOpacity, ImageBackground } from "react-native";
+import React, { useState, useEffect, useCallback } from "react";
+import { View, Text, FlatList, StyleSheet, ImageBackground, ActivityIndicator } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialIcons } from "@expo/vector-icons";
 import { getCustomerCards } from "../services/api";
 import CardItem from "../components/CardItem";
+import { useLocalSearchParams } from "expo-router";
 
 export default function HomeScreen() {
-  const [customerId, setCustomerId] = useState("");
-  const [cards, setCards] = useState<{ pan: string; expiry: string; name_on_card: string; cardstatus: string; cardtype: string; }[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState(""); // Ajout de l'état pour l'erreur
+  const { customerId } = useLocalSearchParams<{ customerId: string }>();
 
-  const fetchCards = async () => {
-    setErrorMessage(""); // Réinitialiser l'erreur avant la requête
-    if (!customerId.trim()) {
-      setErrorMessage("Veuillez entrer un Customer ID.");
-      return;
-    }
+  const [cards, setCards] = useState<{ pan: string; expiry: string; name_on_card: string; cardstatus: string; cardtype: string; }[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const fetchCards = useCallback(async () => {
+    setErrorMessage("");
     setIsLoading(true);
     try {
       const result = await getCustomerCards(customerId);
       if (result.length === 0) {
-        setErrorMessage("Aucune carte trouvée.");
+        setErrorMessage("No cards found for this customer ID.");
       }
       setCards(result);
     } catch (error) {
-      setErrorMessage("Une erreur est survenue lors de la récupération des cartes.");
+      setErrorMessage("An error occurred while fetching the cards.");
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [customerId]);
+
+  useEffect(() => {
+    fetchCards();
+  }, [fetchCards]);
 
   return (
-    <ImageBackground source={require("../assets/background.jpg")} style={styles.background}>
-      <LinearGradient colors={["rgba(160, 116, 116, 0.9)", "rgba(53, 24, 24, 0.06)"]} style={styles.overlay}>
+    <ImageBackground 
+      source={require("../assets/background.jpg")} 
+      style={styles.background}
+    >
+      <LinearGradient 
+        colors={["rgba(160, 116, 116, 0.9)", "rgba(53, 24, 24, 0.06)"]} 
+        style={styles.overlay}
+      >
         <View style={styles.container}>
           <View style={styles.header}>
-            <Text style={styles.title}>Customer Card Finder</Text>
+            <Text style={styles.title}>Customer Cards</Text>
             <MaterialIcons name="contactless" size={28} color="#4f46e5" />
           </View>
 
-          <View style={styles.searchContainer}>
-            <LinearGradient colors={["#ffffff", "#f1f5f9"]} style={styles.inputContainer}>
-              <TextInput
-                style={styles.input}
-                placeholder="Enter Customer ID"
-                placeholderTextColor="#94a3b8"
-                value={customerId}
-                onChangeText={setCustomerId}
-                keyboardType="numeric"
-              />
-              <MaterialIcons name="person-search" size={24} color="#64748b" />
-            </LinearGradient>
-
-            <TouchableOpacity onPress={fetchCards} style={styles.searchButton} disabled={isLoading}>
-              <LinearGradient colors={["#4f46e5", "#6366f1"]} style={styles.buttonGradient}>
-                <Text style={styles.buttonText}>{isLoading ? "Searching..." : "Find Cards"}</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-          </View>
-
-          {/* Affichage du message d'erreur si il y en a */}
-          {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
-
-          <FlatList
-            data={cards}
-            keyExtractor={(item) => item.pan}
-            renderItem={({ item }) => <CardItem card={item} />}
-            contentContainerStyle={styles.listContent}
-            showsVerticalScrollIndicator={false}
-          />
+          {isLoading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#4f46e5" />
+              <Text style={styles.loadingText}>Loading cards...</Text>
+            </View>
+          ) : errorMessage ? (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>{errorMessage}</Text>
+            </View>
+          ) : (
+            <FlatList
+              data={cards}
+              keyExtractor={(item) => item.pan}
+              renderItem={({ item }) => <CardItem card={item} />}
+              contentContainerStyle={styles.listContent}
+              showsVerticalScrollIndicator={false}
+            />
+          )}
         </View>
       </LinearGradient>
     </ImageBackground>
@@ -83,7 +79,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.3)", // Ajoute une légère opacité pour un effet propre
+    backgroundColor: "rgba(0,0,0,0.3)",
   },
   container: {
     flex: 1,
@@ -101,42 +97,27 @@ const styles = StyleSheet.create({
     color: "#fff",
     letterSpacing: 0.5,
   },
-  searchContainer: {
-    marginBottom: 24,
-  },
-  inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-    borderRadius: 16,
-  },
-  input: {
+  loadingContainer: {
     flex: 1,
-    fontSize: 16,
-    color: "#1e293b",
-    marginRight: 12,
-  },
-  searchButton: {
-    borderRadius: 14,
-    overflow: "hidden",
-  },
-  buttonGradient: {
-    paddingVertical: 16,
+    justifyContent: "center",
     alignItems: "center",
   },
-  buttonText: {
+  loadingText: {
+    marginTop: 12,
     color: "#fff",
     fontSize: 16,
-    fontWeight: "600",
-    letterSpacing: 0.5,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  errorText: {
+    color: "#ef4444",
+    fontSize: 16,
+    textAlign: "center",
   },
   listContent: {
     paddingBottom: 40,
-  },
-  errorText: {
-    color: "red",
-    textAlign: "center",
-    marginTop: 10,
-    fontSize: 14,
   },
 });

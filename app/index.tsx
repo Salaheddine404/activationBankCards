@@ -1,9 +1,9 @@
 import React from "react";
 import { registerRootComponent } from "expo";
-import HomeScreen from "./screens/HomeScreen";
+import LoginScreen from "./screens/LoginScreen";
 
 export default function App() {
-  return <HomeScreen />;
+  return <LoginScreen />;
 }
 
 registerRootComponent(App);
